@@ -12,6 +12,7 @@ package org.eclipse.equinox.p2.metadata.expression;
 
 /**
  * A general purpose visitor that will visit each node in an expression tree.
+ * @since 2.0
  */
 public interface IExpressionVisitor {
 	/**

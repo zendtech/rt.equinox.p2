@@ -16,6 +16,7 @@ import org.osgi.framework.Filter;
 /**
  * An interface that combines the IExpression with the LDAP filter. The
  * string representation is the LDAP filter syntax.
+ * @since 2.0
  */
 public interface IFilterExpression extends IExpression, Filter {
 	/**

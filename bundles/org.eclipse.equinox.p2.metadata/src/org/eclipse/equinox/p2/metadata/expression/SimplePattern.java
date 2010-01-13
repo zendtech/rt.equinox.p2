@@ -15,6 +15,7 @@ import java.io.Serializable;
 /**
  * A simple compiled pattern. It supports two kinds of wildcards. The '*' (any character zero to many times)
  * and the '?' (any character exactly one time).
+ * @since 2.0
  */
 public class SimplePattern implements Serializable, Comparable<SimplePattern> {
 	private static final long serialVersionUID = -2477990705739062410L;

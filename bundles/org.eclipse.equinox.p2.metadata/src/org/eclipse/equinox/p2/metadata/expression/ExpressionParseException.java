@@ -13,6 +13,7 @@ package org.eclipse.equinox.p2.metadata.expression;
 /**
  * An exception used by an expression parser that indicates that something went wrong when
  * parsing.
+ * @since 2.0
  */
 public class ExpressionParseException extends RuntimeException {
 	private static final long serialVersionUID = 8432875384760577764L;

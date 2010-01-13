@@ -13,6 +13,7 @@ package org.eclipse.equinox.p2.metadata.expression;
 /**
  * The evaluation context. Contexts can be nested and new contexts are pushed for each closure
  * during an evaluation of an expression.
+ * @since 2.0
  */
 public interface IEvaluationContext {
 	/**

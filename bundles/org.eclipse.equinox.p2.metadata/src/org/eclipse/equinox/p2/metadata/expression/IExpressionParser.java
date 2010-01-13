@@ -13,6 +13,7 @@ package org.eclipse.equinox.p2.metadata.expression;
 /**
  * A parser that produces an expression tree based on a string representation. An
  * implementation will use the {@link IExpressionFactory} to create the actual expressions
+ * @since 2.0
  */
 public interface IExpressionParser {
 	/**
