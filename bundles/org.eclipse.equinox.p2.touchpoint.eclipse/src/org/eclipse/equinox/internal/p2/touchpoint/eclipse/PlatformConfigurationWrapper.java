@@ -14,10 +14,11 @@ import java.io.File;
 import java.net.*;
 import java.util.List;
 import org.eclipse.core.runtime.*;
-import org.eclipse.equinox.frameworkadmin.BundleInfo;
 import org.eclipse.equinox.internal.p2.update.*;
+import org.eclipse.equinox.internal.provisional.frameworkadmin.LauncherData;
 import org.eclipse.equinox.internal.provisional.frameworkadmin.Manipulator;
 import org.eclipse.equinox.p2.core.ProvisionException;
+import org.eclipse.osgi.service.environment.Constants;
 import org.eclipse.osgi.util.NLS;
 
 /**	
@@ -41,25 +42,53 @@ public class PlatformConfigurationWrapper {
 	 * ourselves. (see https://bugs.eclipse.org/354552)
 	 */
 	private static URL getOSGiInstallArea(Manipulator manipulator) {
-		final String OSGI = "org.eclipse.osgi"; //$NON-NLS-1$
-		BundleInfo[] bis = manipulator.getConfigData().getBundles();
-		String searchFor = "org.eclipse.equinox.launcher"; //$NON-NLS-1$
-		for (int i = 0; i < bis.length; i++) {
-			if (bis[i].getSymbolicName().equals(searchFor)) {
-				if (bis[i].getLocation() != null) {
-					try {
-						if (bis[i].getLocation().getScheme().equals("file")) //$NON-NLS-1$
-							return fromOSGiJarToOSGiInstallArea(bis[i].getLocation().getPath()).toURL();
-					} catch (MalformedURLException e) {
-						//do nothing
-					}
-				}
-				if (searchFor.equals(OSGI))
-					return null;
-				searchFor = OSGI;
-				i = -1;
+
+		// first see if the launcher home is set
+		LauncherData launcherData = manipulator.getLauncherData();
+		File home = launcherData.getHome();
+		if (home != null) {
+			try {
+				return home.toURI().toURL();
+			} catch (MalformedURLException e) {
+				// ignore - shouldn't happen
 			}
 		}
+
+		// next try and calculate the value based on the location of the framework (OSGi) jar.
+		File fwkJar = launcherData.getFwJar();
+		if (fwkJar != null) {
+			try {
+				return fromOSGiJarToOSGiInstallArea(fwkJar.getAbsolutePath()).toURI().toURL();
+			} catch (MalformedURLException e) {
+				// ignore - shouldn't happen
+			}
+		}
+
+		// finally calculate the value based on the location of the launcher executable itself
+		File launcherFile = launcherData.getLauncher();
+		if (launcherFile != null) {
+			if (Constants.OS_MACOSX.equals(launcherData.getOS())) {
+				//the equinox launcher will look 3 levels up on the mac when going from executable to launcher.jar
+				//see org.eclipse.equinox.executable/library/eclipse.c : findStartupJar();
+				IPath launcherPath = new Path(launcherFile.getAbsolutePath());
+				if (launcherPath.segmentCount() > 4) {
+					//removing "Eclipse.app/Contents/MacOS/eclipse"
+					launcherPath = launcherPath.removeLastSegments(4);
+					try {
+						return launcherPath.toFile().toURI().toURL();
+					} catch (MalformedURLException e) {
+						// ignore - shouldn't happen
+					}
+				}
+			}
+			try {
+				return launcherFile.getParentFile().toURI().toURL();
+			} catch (MalformedURLException e) {
+				// ignore - shouldn't happen
+			}
+		}
+
+		// we don't have enough information to calculate the OSGi install area so return null
 		return null;
 	}
 
