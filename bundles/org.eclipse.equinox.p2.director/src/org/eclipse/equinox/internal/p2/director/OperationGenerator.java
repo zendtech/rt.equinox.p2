@@ -18,6 +18,7 @@ import org.eclipse.equinox.p2.query.*;
 public class OperationGenerator {
 	private static final IInstallableUnit NULL_IU = MetadataFactory.createResolvedInstallableUnit(MetadataFactory.createInstallableUnit(new MetadataFactory.InstallableUnitDescription()), new IInstallableUnitFragment[0]);
 	private final IProvisioningPlan plan;
+	private Map<IInstallableUnit, Operand> association = new HashMap<IInstallableUnit, Operand>();
 
 	public OperationGenerator(IProvisioningPlan plan) {
 		this.plan = plan;
@@ -41,6 +42,12 @@ public class OperationGenerator {
 		generateUpdates(from, to);
 		generateInstallUninstall(from, to);
 		generateConfigurationChanges(to_, intersection);
+
+		// Op(A, A') --> A -> Op(A, A') : A' -> Op(A, A')
+		// install order A < B < C < D
+		// rev install order D > C > B > A
+
+		//		new OperandSorter(from_, true);
 	}
 
 	//This generates operations that are causing the IUs to be reconfigured.

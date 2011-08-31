@@ -173,4 +173,6 @@ public interface IProvisioningPlan {
 	 * @param to the installable unit to add
 	 */
 	public void updateInstallableUnit(IInstallableUnit from, IInstallableUnit to);
+
+	public void autoSortOperands(boolean automaticallySort);
 }

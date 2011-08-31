@@ -119,4 +119,9 @@ public abstract class InstallableUnitPhase extends Phase {
 		}
 		return matches;
 	}
+
+	@Override
+	public String getProcessingOrder() {
+		return ORDER_INDEPENDENT;
+	}
 }

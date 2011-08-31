@@ -72,6 +72,11 @@ public class EngineTest extends AbstractProvisioningTest {
 		public boolean isConsistent() {
 			return operandCount == 0 && phaseCount == 0;
 		}
+
+		@Override
+		public String getProcessingOrder() {
+			return Phase.ORDER_INDEPENDENT;
+		}
 	}
 
 	private static class NPEPhase extends CountPhase {

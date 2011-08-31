@@ -29,29 +29,44 @@ public class Engine implements IEngine {
 		agent.registerService(ActionManager.SERVICE_NAME, new ActionManager());
 	}
 
-	private void checkArguments(IProfile iprofile, PhaseSet phaseSet, Operand[] operands, ProvisioningContext context, IProgressMonitor monitor) {
+	private void checkArguments(IProfile iprofile, PhaseSet phaseSet, Operand[] operandsSortedForInstall, Operand[] operandsSortedForUnnstall, ProvisioningContext context, IProgressMonitor monitor) {
 		if (iprofile == null)
 			throw new IllegalArgumentException(Messages.null_profile);
 
 		if (phaseSet == null)
 			throw new IllegalArgumentException(Messages.null_phaseset);
 
-		if (operands == null)
+		if (operandsSortedForInstall == null)
+			throw new IllegalArgumentException(Messages.null_operands);
+
+		if (operandsSortedForUnnstall == null)
 			throw new IllegalArgumentException(Messages.null_operands);
 	}
 
 	public IStatus perform(IProvisioningPlan plan, IPhaseSet phaseSet, IProgressMonitor monitor) {
-		return perform(plan.getProfile(), phaseSet, ((ProvisioningPlan) plan).getOperands(), plan.getContext(), monitor);
+		return perform(plan.getProfile(), phaseSet, (ProvisioningPlan) plan, monitor);
 	}
 
 	public IStatus perform(IProvisioningPlan plan, IProgressMonitor monitor) {
 		return perform(plan, PhaseSetFactory.createDefaultPhaseSet(), monitor);
 	}
 
-	public IStatus perform(IProfile iprofile, IPhaseSet phases, Operand[] operands, ProvisioningContext context, IProgressMonitor monitor) {
+	//	
+	//	 Arrays. new OperandSorter(plan.getRemovals(), false).sortBundles(uninstallOrder);
+	//	return perform(plan.getProfile(), phaseSet,.)
+
+	private IStatus perform(IProfile iprofile, IPhaseSet phases,  ProvisioningPlan plan, IProgressMonitor monitor) {
+		Operand[] installOrder = null;
+		Operand[] uninstallOrder = null;
+		if (plan.requiresOperandSorting())
+			 = ((ProvisioningPlan) plan).getOperands();
+		// = ((ProvisioningPlan) plan).getOperands();
+		//	 new OperandSorter(plan.getAdditions(), true).sortBundles(installOrder);
+		Operand[] operandsSortedForInstall, Operand[] operandsSortedForUninstall, ProvisioningContext context,
+		
 		PhaseSet phaseSet = (PhaseSet) phases;
-		checkArguments(iprofile, phaseSet, operands, context, monitor);
-		if (operands.length == 0)
+		checkArguments(iprofile, phaseSet, operandsSortedForUninstall, operandsSortedForUninstall, context, monitor);
+		if (operandsSortedForUninstall.length == 0 && operandsSortedForInstall.length == 0)
 			return Status.OK_STATUS;
 		SimpleProfileRegistry profileRegistry = (SimpleProfileRegistry) agent.getService(IProfileRegistry.SERVICE_NAME);
 		IProvisioningEventBus eventBus = (IProvisioningEventBus) agent.getService(IProvisioningEventBus.SERVICE_NAME);
@@ -72,7 +87,7 @@ public class Engine implements IEngine {
 
 			EngineSession session = new EngineSession(agent, profile, context);
 
-			MultiStatus result = phaseSet.perform(session, operands, monitor);
+			MultiStatus result = phaseSet.perform(session, operandsSortedForInstall, operandsSortedForUninstall, monitor);
 			if (result.isOK() || result.matches(IStatus.INFO | IStatus.WARNING)) {
 				if (DebugHelper.DEBUG_ENGINE)
 					DebugHelper.debug(ENGINE, "Preparing to commit engine operation for profile=" + profile.getProfileId()); //$NON-NLS-1$

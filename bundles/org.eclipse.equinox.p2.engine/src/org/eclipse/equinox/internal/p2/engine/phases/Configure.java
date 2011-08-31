@@ -10,16 +10,15 @@
  *******************************************************************************/
 package org.eclipse.equinox.internal.p2.engine.phases;
 
-import org.eclipse.equinox.p2.query.QueryUtil;
-
 import java.util.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.equinox.internal.p2.engine.*;
-import org.eclipse.equinox.p2.engine.PhaseSetFactory;
 import org.eclipse.equinox.p2.engine.IProfile;
+import org.eclipse.equinox.p2.engine.PhaseSetFactory;
 import org.eclipse.equinox.p2.engine.spi.ProvisioningAction;
 import org.eclipse.equinox.p2.metadata.IArtifactKey;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.query.QueryUtil;
 import org.eclipse.osgi.util.NLS;
 
 public class Configure extends InstallableUnitPhase {
@@ -53,5 +52,10 @@ public class Configure extends InstallableUnitPhase {
 			parameters.put(PARM_ARTIFACT, artifacts.iterator().next());
 
 		return Status.OK_STATUS;
+	}
+
+	@Override
+	public String getProcessingOrder() {
+		return ORDER_INSTALL;
 	}
 }

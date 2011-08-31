@@ -20,6 +20,10 @@ import org.eclipse.equinox.p2.engine.spi.Touchpoint;
 import org.eclipse.osgi.util.NLS;
 
 public abstract class Phase {
+	protected static final String ORDER_INSTALL = "orderInstall"; //$NON-NLS-1$
+	protected static final String ORDER_UNINSTALL = "orderUninstall"; //$NON-NLS-1$
+	protected static final String ORDER_INDEPENDENT = "orderIndependent"; //$NON-NLS-1$
+
 	protected static final String PARM_OPERAND = "operand"; //$NON-NLS-1$
 	protected static final String PARM_PHASE_ID = "phaseId"; //$NON-NLS-1$
 	protected static final String PARM_PROFILE = "profile"; //$NON-NLS-1$
@@ -322,4 +326,7 @@ public abstract class Phase {
 	protected String getProblemMessage() {
 		return NLS.bind(Messages.phase_error, getClass().getName());
 	}
+
+	public abstract String getProcessingOrder();
+
 }

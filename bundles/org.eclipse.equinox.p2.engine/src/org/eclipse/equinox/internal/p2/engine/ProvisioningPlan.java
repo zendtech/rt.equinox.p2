@@ -10,10 +10,18 @@
  *******************************************************************************/
 package org.eclipse.equinox.internal.p2.engine;
 
+import org.eclipse.equinox.internal.p2.director.OperandSorter;
+
 import java.util.*;
 import org.eclipse.core.runtime.*;
+import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
+import org.eclipse.equinox.internal.p2.metadata.TranslationSupport;
+import org.eclipse.equinox.internal.p2.metadata.index.*;
 import org.eclipse.equinox.p2.engine.*;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
+import org.eclipse.equinox.p2.metadata.KeyWithLocale;
+import org.eclipse.equinox.p2.metadata.index.IIndex;
+import org.eclipse.equinox.p2.metadata.index.IIndexProvider;
 import org.eclipse.equinox.p2.query.*;
 
 /**
@@ -21,11 +29,12 @@ import org.eclipse.equinox.p2.query.*;
  */
 public class ProvisioningPlan implements IProvisioningPlan {
 
-	final IProfile profile;
-	final List<Operand> operands = new ArrayList<Operand>();
-	final ProvisioningContext context;
-	IStatus status;
+	private final IProfile profile;
+	private final List<Operand> operands = new ArrayList<Operand>();
+	private final ProvisioningContext context;
+	private IStatus status;
 	private IProvisioningPlan installerPlan;
+	private boolean sortOperands = false;
 
 	public ProvisioningPlan(IProfile profile, Operand[] operands, ProvisioningContext context) {
 		this(Status.OK_STATUS, profile, operands, context, null);
@@ -81,8 +90,11 @@ public class ProvisioningPlan implements IProvisioningPlan {
 		return new QueryablePlan(true);
 	}
 
-	private class QueryablePlan implements IQueryable<IInstallableUnit> {
+	private class QueryablePlan implements IQueryable<IInstallableUnit>, IIndexProvider<IInstallableUnit> {
 		private boolean addition;
+		private IdIndex idIndex;
+		private CapabilityIndex capabilityIndex;
+		private TranslationSupport translationSupport;
 
 		public QueryablePlan(boolean add) {
 			this.addition = add;
@@ -91,16 +103,51 @@ public class ProvisioningPlan implements IProvisioningPlan {
 		public IQueryResult<IInstallableUnit> query(IQuery<IInstallableUnit> query, IProgressMonitor monitor) {
 			if (operands == null || status.getSeverity() == IStatus.ERROR)
 				return Collector.emptyCollector();
-			Collection<IInstallableUnit> list = new ArrayList<IInstallableUnit>();
+			return IndexProvider.query(this, query, monitor);
+		}
+
+		private Collection<IInstallableUnit> getIUs() {
+			Collection<IInstallableUnit> units = new ArrayList<IInstallableUnit>(operands.size());
 			for (Operand operand : operands) {
 				if (!(operand instanceof InstallableUnitOperand))
 					continue;
 				InstallableUnitOperand op = ((InstallableUnitOperand) operand);
 				IInstallableUnit iu = addition ? op.second() : op.first();
 				if (iu != null)
-					list.add(iu);
+					units.add(iu);
 			}
-			return query.perform(list.iterator());
+			return units;
+		}
+
+		public synchronized IIndex<IInstallableUnit> getIndex(String memberName) {
+			if (InstallableUnit.MEMBER_ID.equals(memberName)) {
+				if (idIndex == null)
+					idIndex = new IdIndex(getIUs().iterator());
+				return idIndex;
+			}
+
+			if (InstallableUnit.MEMBER_PROVIDED_CAPABILITIES.equals(memberName)) {
+				if (capabilityIndex == null)
+					capabilityIndex = new CapabilityIndex(getIUs().iterator());
+				return capabilityIndex;
+			}
+			return null;
+		}
+
+		public synchronized Object getManagedProperty(Object client, String memberName, Object key) {
+			if (!(client instanceof IInstallableUnit))
+				return null;
+			IInstallableUnit iu = (IInstallableUnit) client;
+			if (InstallableUnit.MEMBER_TRANSLATED_PROPERTIES.equals(memberName)) {
+				if (translationSupport == null)
+					translationSupport = new TranslationSupport(this);
+				return key instanceof KeyWithLocale ? translationSupport.getIUProperty(iu, (KeyWithLocale) key) : translationSupport.getIUProperty(iu, key.toString());
+			}
+			return null;
+		}
+
+		public Iterator<IInstallableUnit> everything() {
+			return getIUs().iterator();
 		}
 	}
 
@@ -143,5 +190,21 @@ public class ProvisioningPlan implements IProvisioningPlan {
 		if (value == null && currentValue == null)
 			return;
 		operands.add(new InstallableUnitPropertyOperand(iu, name, currentValue, value));
+	}
+
+	public void autoSortOperands(boolean automaticallySort) {
+		sortOperands = automaticallySort;
+	}
+
+	Operand[] getOrderedPlanForInstall() {
+		Operand[] sortedPlan = getOperands();
+		new OperandSorter(new CompoundQueryable<IInstallableUnit>(new IQueryable[] { profile }new QueryablePlan(true), true).sortBundles(sortedPlan);
+		return sortedPlan;
+	}
+
+	Operand[] getOrderedPlanForUninstall() {
+		Operand[] sortedPlan = getOperands();
+		new OperandSorter(new QueryablePlan(false), false).sortBundles(sortedPlan);
+		return sortedPlan;
 	}
 }
