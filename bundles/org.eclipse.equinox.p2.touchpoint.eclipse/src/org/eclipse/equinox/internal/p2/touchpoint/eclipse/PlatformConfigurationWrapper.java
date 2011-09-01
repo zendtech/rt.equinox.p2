@@ -14,6 +14,7 @@ import java.io.File;
 import java.net.*;
 import java.util.List;
 import org.eclipse.core.runtime.*;
+import org.eclipse.equinox.frameworkadmin.BundleInfo;
 import org.eclipse.equinox.internal.p2.update.*;
 import org.eclipse.equinox.internal.provisional.frameworkadmin.LauncherData;
 import org.eclipse.equinox.internal.provisional.frameworkadmin.Manipulator;
@@ -40,6 +41,11 @@ public class PlatformConfigurationWrapper {
 	 * Use the given manipulator to calculate the OSGi install location. We can't
 	 * just use the Location service here because we may not be installing into
 	 * ourselves. (see https://bugs.eclipse.org/354552)
+	 * 
+	 * First try and calculate the location based relative to the data provided
+	 * in the manipulator's launcher data. If that doesn't work then calculate
+	 * it based on the location of known JARs. If that still doesn't work then
+	 * return null.
 	 */
 	private static URL getOSGiInstallArea(Manipulator manipulator) {
 
@@ -88,7 +94,27 @@ public class PlatformConfigurationWrapper {
 			}
 		}
 
-		// we don't have enough information to calculate the OSGi install area so return null
+		// we couldn't calculate it based on the info in the launcher data, so
+		// try to do it based on the location of known JARs.
+		final String OSGI = "org.eclipse.osgi"; //$NON-NLS-1$
+		BundleInfo[] bis = manipulator.getConfigData().getBundles();
+		String searchFor = "org.eclipse.equinox.launcher"; //$NON-NLS-1$
+		for (int i = 0; i < bis.length; i++) {
+			if (bis[i].getSymbolicName().equals(searchFor)) {
+				if (bis[i].getLocation() != null) {
+					try {
+						if (bis[i].getLocation().getScheme().equals("file")) //$NON-NLS-1$
+							return fromOSGiJarToOSGiInstallArea(bis[i].getLocation().getPath()).toURI().toURL();
+					} catch (MalformedURLException e) {
+						//do nothing
+					}
+				}
+				if (searchFor.equals(OSGI))
+					return null;
+				searchFor = OSGI;
+				i = -1;
+			}
+		}
 		return null;
 	}
 
