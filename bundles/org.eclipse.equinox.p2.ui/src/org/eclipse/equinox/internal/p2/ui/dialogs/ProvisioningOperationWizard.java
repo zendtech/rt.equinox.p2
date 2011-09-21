@@ -191,6 +191,37 @@ public abstract class ProvisioningOperationWizard extends Wizard {
 		return new ProvisioningContext(ui.getSession().getProvisioningAgent());
 	}
 
+	boolean youAreLucky = false;
+
+	public void recomputePlanWithLuck(IRunnableContext runnableContext) {
+
+		couldNotResolveStatus = Status.OK_STATUS;
+		provisioningContext = getProvisioningContext();
+		initializeResolutionModelElements(getOperationSelections());
+		if (planSelections.length == 0) {
+			operation = null;
+			couldNotResolve(ProvUIMessages.ResolutionWizardPage_NoSelections);
+		} else {
+			operation = ui.getLuckyOperation(provisioningContext);
+			operation.setProvisioningContext(provisioningContext);
+			try {
+				runnableContext.run(true, true, new IRunnableWithProgress() {
+					public void run(IProgressMonitor monitor) {
+						operation.resolveModal(monitor);
+					}
+				});
+
+			} catch (InterruptedException e) {
+				// Nothing to report if thread was interrupted
+			} catch (InvocationTargetException e) {
+				ProvUI.handleException(e.getCause(), null, StatusManager.SHOW | StatusManager.LOG);
+				couldNotResolve(null);
+			}
+		}
+		planChanged();
+		youAreLucky = true;
+	}
+
 	/**
 	 * Recompute the provisioning plan based on the items in the IUElementListRoot and the given provisioning context.
 	 * Report progress using the specified runnable context.  This method may be called before the page is created.
@@ -198,6 +229,10 @@ public abstract class ProvisioningOperationWizard extends Wizard {
 	 * @param runnableContext
 	 */
 	public void recomputePlan(IRunnableContext runnableContext) {
+		if (youAreLucky) {
+			recomputePlanWithLuck(runnableContext);
+			return;
+		}
 		couldNotResolveStatus = Status.OK_STATUS;
 		provisioningContext = getProvisioningContext();
 		initializeResolutionModelElements(getOperationSelections());
@@ -349,5 +384,9 @@ public abstract class ProvisioningOperationWizard extends Wizard {
 	 */
 	public boolean statusOverridesOperation() {
 		return false;
+	}
+
+	public void setBeLucky(boolean b) {
+		this.youAreLucky = b;
 	}
 }
