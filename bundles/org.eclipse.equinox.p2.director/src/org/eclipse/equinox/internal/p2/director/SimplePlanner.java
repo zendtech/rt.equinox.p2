@@ -51,7 +51,6 @@ public class SimplePlanner implements IPlanner {
 
 	private IProvisioningPlan generateProvisioningPlan(Collection<IInstallableUnit> fromState, Collection<IInstallableUnit> toState, ProfileChangeRequest changeRequest, IProvisioningPlan installerPlan, ProvisioningContext context) {
 		IProvisioningPlan plan = engine.createPlan(changeRequest.getProfile(), context);
-		plan.setFuturePlan(new CollectionResult<IInstallableUnit>(toState));
 		planIUOperations(plan, fromState, toState);
 		planPropertyOperations(plan, changeRequest, toState);
 
@@ -78,15 +77,16 @@ public class SimplePlanner implements IPlanner {
 		return plan;
 	}
 
-	private Map<IInstallableUnit, RequestStatus>[] buildDetailedErrors(ProfileChangeRequest changeRequest) {
+	private Map<IInstallableUnit, RequestStatus>[] buildDetailedErrors(ProfileChangeRequest changeRequest, Set<Explanation> explanation) {
+		// TODO extract info from the explanation
 		Collection<IInstallableUnit> requestedAdditions = changeRequest.getAdditions();
 		Collection<IInstallableUnit> requestedRemovals = changeRequest.getRemovals();
 		Map<IInstallableUnit, RequestStatus> requestStatus = new HashMap<IInstallableUnit, RequestStatus>(requestedAdditions.size() + requestedAdditions.size());
 		for (IInstallableUnit added : requestedAdditions) {
-			requestStatus.put(added, new RequestStatus(added, RequestStatus.ADDED, IStatus.ERROR, null));
+			requestStatus.put(added, new RequestStatus(added, RequestStatus.ADDED, IStatus.ERROR, explanation));
 		}
 		for (IInstallableUnit removed : requestedRemovals) {
-			requestStatus.put(removed, new RequestStatus(removed, RequestStatus.REMOVED, IStatus.ERROR, null));
+			requestStatus.put(removed, new RequestStatus(removed, RequestStatus.REMOVED, IStatus.ERROR, explanation));
 		}
 		@SuppressWarnings("unchecked")
 		Map<IInstallableUnit, RequestStatus>[] maps = new Map[] {requestStatus, null};
@@ -351,7 +351,7 @@ public class SimplePlanner implements IPlanner {
 				Set<Explanation> explanation = projector.getExplanation(sub.newChild(ExpandWork / 4));
 				IStatus explanationStatus = convertExplanationToStatus(explanation);
 
-				Map<IInstallableUnit, RequestStatus>[] changes = buildDetailedErrors(profileChangeRequest);
+				Map<IInstallableUnit, RequestStatus>[] changes = buildDetailedErrors(profileChangeRequest, explanation);
 				Map<IInstallableUnit, RequestStatus> requestChanges = (changes == null) ? null : changes[0];
 				Map<IInstallableUnit, RequestStatus> requestSideEffects = (changes == null) ? null : changes[1];
 				PlannerStatus plannerStatus = new PlannerStatus(explanationStatus, new RequestStatus(null, RequestStatus.REMOVED, IStatus.ERROR, explanation), requestChanges, requestSideEffects, null);

@@ -39,7 +39,8 @@ public class RequestStatus extends Status {
 			Iterator<Explanation> iterator = explanation.iterator();
 			Explanation o = null;
 			while (iterator.hasNext() && ((o = iterator.next()) instanceof Explanation.IUToInstall)) {
-				conflictingRootIUs.add(((IUToInstall) o).iu);
+				if (!((IUToInstall) o).iu.equals(iu))
+					conflictingRootIUs.add(((IUToInstall) o).iu);
 			}
 			if (o instanceof Explanation.IUInstalled) {
 				conflictingInstalledIUs.add(((IUInstalled) o).iu);
