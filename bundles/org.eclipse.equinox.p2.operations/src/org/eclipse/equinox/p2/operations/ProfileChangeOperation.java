@@ -84,7 +84,7 @@ public abstract class ProfileChangeOperation implements IProfileChangeJob {
 	ProvisioningContext context;
 	MultiStatus noChangeRequest;
 	PlannerResolutionJob job;
-	ProfileChangeRequest request;
+	protected ProfileChangeRequest request;
 
 	/**
 	 * Create an operation using the provided provisioning session.

@@ -101,7 +101,7 @@ public class IUDetailsGroup {
 			public void widgetSelected(SelectionEvent e) {
 				System.out.println("Let's retry the operation");
 				// TODO, Let's do something different here.
-				wizard.recomputePlan(wizard.getContainer());
+				wizard.recomputePlanWithLuck(wizard.getContainer());
 				System.out.println("Completed... the operation");
 			}
 		});
