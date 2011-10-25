@@ -29,7 +29,7 @@ public class PhaseSet implements IPhaseSet {
 
 	public final MultiStatus perform(EngineSession session, Operand[] operandsSortedForInstall, Operand[] operandsSortedForUninstall, IProgressMonitor monitor) {
 		MultiStatus status = new MultiStatus(EngineActivator.ID, IStatus.OK, null, null);
-		int[] weights = getProgressWeights(operands);
+		int[] weights = getProgressWeights(operandsSortedForInstall);
 		int totalWork = getTotalWork(weights);
 		SubMonitor pm = SubMonitor.convert(monitor, totalWork);
 		try {
@@ -41,7 +41,7 @@ public class PhaseSet implements IPhaseSet {
 				Phase phase = phases[i];
 				phase.actionManager = (ActionManager) session.getAgent().getService(ActionManager.SERVICE_NAME);
 				try {
-					phase.perform(status, session, phase.getProcessingOrder() == Phase.INSTALL_ORDER ? operandsSortedForInstall : operandsSortedForUninstall, pm.newChild(weights[i]));
+					phase.perform(status, session, phase.getProcessingOrder() == Phase.ORDER_INSTALL ? operandsSortedForInstall : operandsSortedForUninstall, pm.newChild(weights[i]));
 				} catch (OperationCanceledException e) {
 					// propagate operation cancellation
 					status.add(new Status(IStatus.CANCEL, EngineActivator.ID, e.getMessage(), e));

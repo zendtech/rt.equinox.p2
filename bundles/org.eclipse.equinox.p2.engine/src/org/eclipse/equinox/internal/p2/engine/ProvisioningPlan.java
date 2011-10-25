@@ -10,8 +10,6 @@
  *******************************************************************************/
 package org.eclipse.equinox.internal.p2.engine;
 
-import org.eclipse.equinox.internal.p2.director.OperandSorter;
-
 import java.util.*;
 import org.eclipse.core.runtime.*;
 import org.eclipse.equinox.internal.p2.metadata.InstallableUnit;
@@ -198,12 +196,18 @@ public class ProvisioningPlan implements IProvisioningPlan {
 
 	Operand[] getOrderedPlanForInstall() {
 		Operand[] sortedPlan = getOperands();
-		new OperandSorter(new CompoundQueryable<IInstallableUnit>(new IQueryable[] { profile }new QueryablePlan(true), true).sortBundles(sortedPlan);
+		if (!sortOperands)
+			return sortedPlan;
+
+		//TODO To change for futureState
+		new OperandSorter(new CompoundQueryable<IInstallableUnit>(new IQueryable[] {profile}), true).sortBundles(sortedPlan);
 		return sortedPlan;
 	}
 
 	Operand[] getOrderedPlanForUninstall() {
 		Operand[] sortedPlan = getOperands();
+		if (!sortOperands)
+			return sortedPlan;
 		new OperandSorter(new QueryablePlan(false), false).sortBundles(sortedPlan);
 		return sortedPlan;
 	}
