@@ -146,6 +146,12 @@ public interface IProfile extends IQueryable<IInstallableUnit> {
 	public static final String STATE_PROP_TAG = "org.eclipse.equinox.p2.state.tag"; //$NON-NLS-1$
 
 	/**
+	 * Profile property constant for additional parameters of the downloading stats(e.g., package=jee&os=linux).
+	 * @since 2.2 
+	 */
+	public static final String PROP_STATS_PARAMETERS = "org.eclipse.equinox.p2.stats.parameters"; //$NON-NLS-1$
+
+	/**
 	 * Returns the provisioning agent that manages this profile
 	 * @return A provisioning agent.
 	 */

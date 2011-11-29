@@ -57,7 +57,7 @@ public class CollectAction extends ProvisioningAction {
 		int count = 0;
 		for (IArtifactKey key : toDownload) {
 			//TODO Here there are cases where the download is not necessary again because what needs to be done is just a configuration step
-			requests[count++] = Util.getArtifactRepositoryManager(agent).createMirrorRequest(key, destination, null, null);
+			requests[count++] = Util.getArtifactRepositoryManager(agent).createMirrorRequest(key, destination, null, null, profile.getProperty(IProfile.PROP_STATS_PARAMETERS));
 		}
 
 		if (requests.length == count)

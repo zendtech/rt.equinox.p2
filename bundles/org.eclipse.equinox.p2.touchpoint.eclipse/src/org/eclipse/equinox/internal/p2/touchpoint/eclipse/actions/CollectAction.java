@@ -80,7 +80,7 @@ public class CollectAction extends ProvisioningAction {
 		for (IArtifactKey key : toDownload) {
 			if (!aggregatedRepositoryView.contains(key)) {
 				Map<String, String> repositoryProperties = CollectAction.createArtifactDescriptorProperties(installableUnit);
-				requests.add(Util.getArtifactRepositoryManager(agent).createMirrorRequest(key, bundlePool, null, repositoryProperties));
+				requests.add(Util.getArtifactRepositoryManager(agent).createMirrorRequest(key, bundlePool, null, repositoryProperties, profile.getProperty(IProfile.PROP_STATS_PARAMETERS)));
 			}
 		}
 
