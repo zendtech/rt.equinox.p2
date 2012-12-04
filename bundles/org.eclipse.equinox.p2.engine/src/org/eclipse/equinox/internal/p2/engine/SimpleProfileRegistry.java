@@ -168,7 +168,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	}
 
 	public synchronized String toString() {
-		return "Profile registry for location: " + store.getAbsolutePath() + "\n" + getProfileMap().toString(); //$NON-NLS-1$
+		return "Profile registry for location: " + store.getAbsolutePath() + "\n" + getProfileMap().toString(); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
 	public synchronized IProfile getProfile(String id) {
