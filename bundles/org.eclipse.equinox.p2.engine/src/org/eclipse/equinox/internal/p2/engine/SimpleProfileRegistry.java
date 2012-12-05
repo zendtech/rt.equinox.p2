@@ -243,10 +243,23 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		if (SELF.equals(id))
 			id = self;
 		Profile profile = getProfileMap().get(id);
-		if (profile == null && self != null && self.equals(id))
-			profile = createSurrogateProfile(id);
-
+		if (self != null && self.equals(id)) {
+			if (profile != null && ignoreExistingProfile(profile)) {
+				internalSetProfileStateProperty(profile, profile.getTimestamp(), "RESET", "RESET");
+				profile = null;
+			}
+			if (profile == null) {
+				profile = createSurrogateProfile(id);
+				internalSetProfileStateProperty(profile, profile.getTimestamp(), "NEW", "NEW");
+			}
+		}
 		return profile;
+	}
+
+	private boolean ignoreExistingProfile(IProfile profile) {
+		if (internalGetProfileStateProperties(profile, profile.getTimestamp()).containsKey("NEW"))
+			return false;
+		return "true".equals(System.getProperty("eclipse.ignoreUserConfiguration"));
 	}
 
 	private Profile createSurrogateProfile(String id) {
@@ -292,9 +305,10 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		return result;
 	}
 
+	//
 	public synchronized void updateProfile(Profile profile) {
 		String id = profile.getProfileId();
-		Profile current = internalGetProfile(id);
+		Profile current = getProfileMap().get(id);
 		if (current == null)
 			throw new IllegalArgumentException(NLS.bind(Messages.profile_does_not_exist, id));
 
@@ -730,7 +744,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	}
 
 	public synchronized boolean isCurrent(IProfile profile) {
-		Profile internalProfile = internalGetProfile(profile.getProfileId());
+		Profile internalProfile = getProfileMap().get(profile.getProfileId());
 		if (internalProfile == null)
 			throw new IllegalArgumentException(NLS.bind(Messages.profile_not_registered, profile.getProfileId()));
 
@@ -833,10 +847,9 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	}
 
 	public synchronized void unlockProfile(IProfile profile) {
-		Profile internalProfile = internalGetProfile(profile.getProfileId());
-		if (internalProfile == null)
+		if (profile == null)
 			throw new IllegalArgumentException(NLS.bind(Messages.profile_not_registered, profile.getProfileId()));
-		internalUnlockProfile(internalProfile);
+		internalUnlockProfile(profile);
 	}
 
 	private void internalUnlockProfile(IProfile profile) {
@@ -1032,22 +1045,28 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	public IStatus setProfileStateProperties(String id, long timestamp, Map<String, String> propertiesToAdd) {
 		if (id == null || propertiesToAdd == null)
 			throw new NullPointerException();
-		IStatus result = validateState(id, timestamp);
+
+		Profile internalProfile = internalGetProfile(id);
+		return internalSetProfileStateProperties(internalProfile, timestamp, propertiesToAdd);
+	}
+
+	private IStatus internalSetProfileStateProperties(IProfile profile, long timestamp, Map<String, String> propertiesToAdd) {
+		IStatus result = validateState(profile.getProfileId(), timestamp);
 		if (!result.isOK())
 			return result;
-		Profile internalProfile = internalGetProfile(id);
-		lockProfile(internalProfile);
+
+		internalLockProfile(profile);
 		try {
-			Properties properties = readStateProperties(id);
+			Properties properties = readStateProperties(profile.getProfileId());
 			for (Map.Entry<String, String> entry : propertiesToAdd.entrySet()) {
 				// property key format is timestamp.key
 				properties.put(timestamp + "." + entry.getKey(), entry.getValue()); //$NON-NLS-1$
 			}
-			writeStateProperties(id, properties);
+			writeStateProperties(profile.getProfileId(), properties);
 		} catch (ProvisionException e) {
 			return e.getStatus();
 		} finally {
-			unlockProfile(internalProfile);
+			internalUnlockProfile(profile);
 		}
 		return Status.OK_STATUS;
 	}
@@ -1056,27 +1075,33 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	 * @see org.eclipse.equinox.p2.engine.IProfileRegistry#setProfileStateProperty(java.lang.String, long, java.lang.String, java.lang.String)
 	 */
 	public IStatus setProfileStateProperty(String id, long timestamp, String key, String value) {
-		if (id == null || key == null || value == null)
+		if (id == null)
+			throw new NullPointerException();
+		return internalSetProfileStateProperty(internalGetProfile(id), timestamp, key, value);
+	}
+
+	private IStatus internalSetProfileStateProperty(IProfile profile, long timestamp, String key, String value) {
+		if (key == null || value == null)
 			throw new NullPointerException();
 		Map<String, String> properties = new HashMap<String, String>();
 		properties.put(key, value);
-		return setProfileStateProperties(id, timestamp, properties);
+
+		return internalSetProfileStateProperties(profile, timestamp, properties);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.equinox.p2.engine.IProfileRegistry#getProfileStateProperties(java.lang.String, long)
-	 */
 	public Map<String, String> getProfileStateProperties(String id, long timestamp) {
 		if (id == null)
 			throw new NullPointerException();
+		return internalGetProfileStateProperties(internalGetProfile(id), timestamp);
+	}
 
+	private Map<String, String> internalGetProfileStateProperties(IProfile profile, long timestamp) {
 		Map<String, String> result = new HashMap<String, String>();
 		String timestampString = String.valueOf(timestamp);
 		int keyOffset = timestampString.length() + 1;
-		Profile internalProfile = internalGetProfile(id);
-		lockProfile(internalProfile);
+		internalLockProfile(profile);
 		try {
-			Properties properties = readStateProperties(id);
+			Properties properties = readStateProperties(profile.getProfileId());
 			Iterator<Object> keys = properties.keySet().iterator();
 			while (keys.hasNext()) {
 				String key = (String) keys.next();
@@ -1086,7 +1111,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		} catch (ProvisionException e) {
 			LogHelper.log(e);
 		} finally {
-			unlockProfile(internalProfile);
+			internalUnlockProfile(profile);
 		}
 		return result;
 	}
@@ -1098,11 +1123,15 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		if (id == null || userKey == null)
 			throw new NullPointerException();
 
-		Map<String, String> result = new HashMap<String, String>();
 		Profile internalProfile = internalGetProfile(id);
-		lockProfile(internalProfile);
+		return internalGetProfileStateProperties(internalProfile, userKey);
+	}
+
+	private Map<String, String> internalGetProfileStateProperties(IProfile profile, String userKey) {
+		Map<String, String> result = new HashMap<String, String>();
+		internalLockProfile(profile);
 		try {
-			Properties properties = readStateProperties(id);
+			Properties properties = readStateProperties(profile.getProfileId());
 			Iterator<Object> keys = properties.keySet().iterator();
 			while (keys.hasNext()) {
 				// property key format is timestamp.key
@@ -1115,7 +1144,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		} catch (ProvisionException e) {
 			LogHelper.log(e);
 		} finally {
-			unlockProfile(internalProfile);
+			internalUnlockProfile(profile);
 		}
 		return result;
 	}
@@ -1131,7 +1160,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 			return Status.OK_STATUS;
 
 		Profile internalProfile = internalGetProfile(id);
-		lockProfile(internalProfile);
+		internalLockProfile(internalProfile);
 		try {
 			Properties properties = readStateProperties(id);
 			String timestampString = String.valueOf(timestamp);
@@ -1154,7 +1183,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		} catch (ProvisionException e) {
 			return e.getStatus();
 		} finally {
-			unlockProfile(internalProfile);
+			internalUnlockProfile(internalProfile);
 		}
 		return Status.OK_STATUS;
 	}
