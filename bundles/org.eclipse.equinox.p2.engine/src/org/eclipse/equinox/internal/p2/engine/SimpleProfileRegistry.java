@@ -257,7 +257,7 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	}
 
 	private boolean ignoreExistingProfile(IProfile profile) {
-		if (internalGetProfileStateProperties(profile, profile.getTimestamp()).containsKey("NEW"))
+		if (internalGetProfileStateProperties(profile, profile.getTimestamp(), false).containsKey("NEW"))
 			return false;
 		return "true".equals(System.getProperty("eclipse.ignoreUserConfiguration"));
 	}
@@ -1092,14 +1092,16 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 	public Map<String, String> getProfileStateProperties(String id, long timestamp) {
 		if (id == null)
 			throw new NullPointerException();
-		return internalGetProfileStateProperties(internalGetProfile(id), timestamp);
+		return internalGetProfileStateProperties(internalGetProfile(id), timestamp, true);
 	}
 
-	private Map<String, String> internalGetProfileStateProperties(IProfile profile, long timestamp) {
+	private Map<String, String> internalGetProfileStateProperties(IProfile profile, long timestamp, boolean lock) {
 		Map<String, String> result = new HashMap<String, String>();
 		String timestampString = String.valueOf(timestamp);
 		int keyOffset = timestampString.length() + 1;
-		internalLockProfile(profile);
+		lock = lock || lastAccessedProperties == null;
+		if (lock)
+			internalLockProfile(profile);
 		try {
 			Properties properties = readStateProperties(profile.getProfileId());
 			Iterator<Object> keys = properties.keySet().iterator();
@@ -1111,7 +1113,8 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		} catch (ProvisionException e) {
 			LogHelper.log(e);
 		} finally {
-			internalUnlockProfile(profile);
+			if (lock)
+				internalUnlockProfile(profile);
 		}
 		return result;
 	}
