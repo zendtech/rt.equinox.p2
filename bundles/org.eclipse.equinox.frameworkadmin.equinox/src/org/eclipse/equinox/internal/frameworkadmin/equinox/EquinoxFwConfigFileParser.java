@@ -201,6 +201,7 @@ public class EquinoxFwConfigFileParser {
 		if (inputFile.isDirectory())
 			throw new IllegalArgumentException(NLS.bind(Messages.exception_inputFileIsDirectory, inputFile));
 
+		boolean baseHasChanged = false;
 		//Initialize data structures
 		ConfigData configData = manipulator.getConfigData();
 		LauncherData launcherData = manipulator.getLauncherData();
@@ -213,7 +214,9 @@ public class EquinoxFwConfigFileParser {
 		// load shared configuration properties
 		Properties sharedConfigProperties = getSharedConfiguration(ParserUtils.getOSGiInstallArea(Arrays.asList(manipulator.getLauncherData().getProgramArgs()), props, manipulator.getLauncherData()), props.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
 		if (sharedConfigProperties != null) {
-			sharedConfigProperties.putAll(props);
+			baseHasChanged = hasBasedChanged(inputFile, manipulator, props);
+			if (!baseHasChanged)
+				sharedConfigProperties.putAll(props);
 			props = sharedConfigProperties;
 		}
 
@@ -225,7 +228,9 @@ public class EquinoxFwConfigFileParser {
 		//readLauncherPath(props, rootURI);
 		readp2DataArea(props, configArea);
 		readSimpleConfiguratorURL(props, configArea);
-		readBundlesList(manipulator, ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), props, launcherData).toURI(), props);
+
+		if (!baseHasChanged)
+			readBundlesList(manipulator, ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), props, launcherData).toURI(), props);
 		readInitialStartLeve(configData, props);
 		readDefaultStartLevel(configData, props);
 
@@ -237,6 +242,21 @@ public class EquinoxFwConfigFileParser {
 			configData.setProperty(key, value);
 		}
 		Log.log(LogService.LOG_INFO, NLS.bind(Messages.log_configFile, inputFile.getAbsolutePath()));
+	}
+
+	private boolean hasBasedChanged(File configIni, Manipulator manipulator, Properties configProps) {
+		LauncherData launcherData = manipulator.getLauncherData();
+		File sharedConfigIni = findSharedConfigIniFile(ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), configProps, launcherData), configProps.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
+		File timestampFile = new File(configIni.getParentFile(), BASE_TIMESTAMPS_FILE);
+		Properties timestamps;
+		try {
+			timestamps = loadProperties(timestampFile);
+		} catch (FileNotFoundException e) {
+			return false;
+		} catch (IOException e) {
+			return false;
+		}
+		return String.valueOf(sharedConfigIni.lastModified()).equals(timestamps.getProperty(KEY_CONFIG_TIMESTAMP));
 	}
 
 	private void readDefaultStartLevel(ConfigData configData, Properties props) {
