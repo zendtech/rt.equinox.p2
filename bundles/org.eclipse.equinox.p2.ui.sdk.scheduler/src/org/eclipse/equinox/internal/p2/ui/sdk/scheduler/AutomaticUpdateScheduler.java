@@ -22,8 +22,11 @@ import org.eclipse.equinox.p2.engine.IProfileRegistry;
 import org.eclipse.equinox.p2.engine.query.IUProfilePropertyQuery;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
 import org.eclipse.equinox.p2.query.IQuery;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.ui.IStartup;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.*;
 import org.eclipse.ui.statushandlers.StatusManager;
 
 /**
@@ -78,8 +81,35 @@ public class AutomaticUpdateScheduler implements IStartup {
 	}
 
 	public void earlyStartup() {
+		if (baseChanged())
+			return;
 		garbageCollect();
 		scheduleUpdate();
+	}
+
+	Shell getWorkbenchWindowShell() {
+		IWorkbenchWindow activeWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		return activeWindow != null ? activeWindow.getShell() : null;
+
+	}
+
+	private boolean baseChanged() {
+		if (!("true".equals(System.getProperty("eclipse.ignoreUserConfiguration"))))
+			return false;
+
+		IProvisioningAgent agent = (IProvisioningAgent) ServiceHelper.getService(AutomaticUpdatePlugin.getContext(), IProvisioningAgent.SERVICE_NAME);
+		IProfileRegistry registry = (IProfileRegistry) agent.getService(IProfileRegistry.SERVICE_NAME);
+		IProfile currentProfile = registry.getProfile(profileId);
+		if (!"NEW".equals(registry.getProfileStateProperties(profileId, currentProfile.getTimestamp()).get("NEW")))
+			return false;
+
+		Display d = Display.getDefault();
+		d.asyncExec(new Runnable() {
+			public void run() {
+				MessageDialog.openWarning(getWorkbenchWindowShell(), "Installation modified", "An upgrade of the eclipse installation you are using has been performed. The extensions you had installed have been disabled.");
+			}
+		});
+		return true;
 	}
 
 	/**
