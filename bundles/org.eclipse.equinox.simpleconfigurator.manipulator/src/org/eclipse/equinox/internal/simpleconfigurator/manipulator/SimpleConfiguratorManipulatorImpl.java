@@ -1,10 +1,13 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2010 IBM Corporation and others. All rights reserved.
+ * Copyright (c) 2007, 2013 IBM Corporation and others. All rights reserved.
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  * 
  * Contributors: IBM Corporation - initial API and implementation
+ * 
+ * Ericsson AB (Pascal Rapicault) - Bug 397216 -[Shared] Better shared
+ * configuration change discovery
  *******************************************************************************/
 package org.eclipse.equinox.internal.simpleconfigurator.manipulator;
 
@@ -63,7 +66,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 				if (manipulator.getLauncherData().getLauncher() != null) {
 					baseDir = manipulator.getLauncherData().getLauncher().getParentFile();
 				} else {
-					throw new IllegalStateException("All of fwConfigFile, home, launcher are not set.");
+					throw new IllegalStateException("All of fwConfigFile, home, launcher are not set."); //$NON-NLS-1$
 				}
 			}
 		} else {
@@ -393,6 +396,33 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 			return;
 		}
 		SimpleConfiguratorManipulatorUtils.writeConfiguration(simpleInfos, outputFile);
+		if (CONFIG_LIST.equals(outputFile.getName()))
+			rememberSharedBundlesInfoTimestamp(installArea, outputFile.getParentFile());
+	}
+
+	private void rememberSharedBundlesInfoTimestamp(URI installArea, File outputFolder) {
+		if (installArea == null)
+			return;
+
+		File sharedBundlesInfo = new File(URIUtil.append(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST));
+		if (!sharedBundlesInfo.exists())
+			return;
+
+		Properties timestampToPersist = new Properties();
+		timestampToPersist.put(SimpleConfiguratorImpl.KEY_BUNDLESINFO_TIMESTAMP, Long.toString(sharedBundlesInfo.lastModified()));
+		OutputStream os = null;
+		try {
+			try {
+				File outputFile = new File(outputFolder, SimpleConfiguratorImpl.BASE_TIMESTAMP_FILE_BUNDLESINFO);
+				os = new BufferedOutputStream(new FileOutputStream(outputFile));
+				timestampToPersist.store(os, "Written by " + this.getClass()); //$NON-NLS-1$
+			} finally {
+				if (os != null)
+					os.close();
+			}
+		} catch (IOException e) {
+			return;
+		}
 	}
 
 	private org.eclipse.equinox.internal.simpleconfigurator.utils.BundleInfo[] convertBundleInfos(BundleInfo[] configuration, URI installArea) {

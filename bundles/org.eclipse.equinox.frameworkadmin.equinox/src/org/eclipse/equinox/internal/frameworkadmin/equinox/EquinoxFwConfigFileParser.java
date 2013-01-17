@@ -30,8 +30,8 @@ public class EquinoxFwConfigFileParser {
 	private static final String KEY_ORG_ECLIPSE_EQUINOX_SIMPLECONFIGURATOR_CONFIGURL = "org.eclipse.equinox.simpleconfigurator.configUrl"; //$NON-NLS-1$
 	private static final String REFERENCE_SCHEME = "reference:"; //$NON-NLS-1$
 	private static final String FILE_PROTOCOL = "file:"; //$NON-NLS-1$
-	private static final String BASE_TIMESTAMPS_FILE = ".baseTimestamps"; //$NON-NLS-1$
-	private static final String KEY_CONFIG_TIMESTAMP = "configIniTimestamp"; //$NON-NLS-1$
+	private static final String BASE_TIMESTAMP_FILE_CONFIGINI = ".baseConfigIniTimestamp"; //$NON-NLS-1$
+	private static final String KEY_CONFIGINI_TIMESTAMP = "configIniTimestamp"; //$NON-NLS-1$
 
 	private static boolean DEBUG = false;
 
@@ -247,7 +247,7 @@ public class EquinoxFwConfigFileParser {
 	private boolean hasBasedChanged(File configIni, Manipulator manipulator, Properties configProps) {
 		LauncherData launcherData = manipulator.getLauncherData();
 		File sharedConfigIni = findSharedConfigIniFile(ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), configProps, launcherData), configProps.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
-		File timestampFile = new File(configIni.getParentFile(), BASE_TIMESTAMPS_FILE);
+		File timestampFile = new File(configIni.getParentFile(), BASE_TIMESTAMP_FILE_CONFIGINI);
 		Properties timestamps;
 		try {
 			timestamps = loadProperties(timestampFile);
@@ -256,7 +256,7 @@ public class EquinoxFwConfigFileParser {
 		} catch (IOException e) {
 			return false;
 		}
-		return String.valueOf(sharedConfigIni.lastModified()).equals(timestamps.getProperty(KEY_CONFIG_TIMESTAMP));
+		return String.valueOf(sharedConfigIni.lastModified()).equals(timestamps.getProperty(KEY_CONFIGINI_TIMESTAMP));
 	}
 
 	private void readDefaultStartLevel(ConfigData configData, Properties props) {
@@ -593,14 +593,14 @@ public class EquinoxFwConfigFileParser {
 		File sharedConfigIni = findSharedConfigIniFile(ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), configProps, launcherData), configProps.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
 		if (sharedConfigIni == null)
 			return;
-		File timestampFile = new File(folder, BASE_TIMESTAMPS_FILE);
+		File timestampFile = new File(folder, BASE_TIMESTAMP_FILE_CONFIGINI);
 		Properties timestamps;
 		try {
 			timestamps = loadProperties(timestampFile);
 		} catch (IOException e) {
 			timestamps = new Properties();
 		}
-		timestamps.setProperty(KEY_CONFIG_TIMESTAMP, String.valueOf(sharedConfigIni.lastModified()));
+		timestamps.setProperty(KEY_CONFIGINI_TIMESTAMP, String.valueOf(sharedConfigIni.lastModified()));
 		saveProperties(timestampFile, timestamps);
 	}
 
