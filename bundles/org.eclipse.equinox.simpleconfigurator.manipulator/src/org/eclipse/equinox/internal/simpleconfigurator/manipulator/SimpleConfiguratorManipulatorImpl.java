@@ -396,7 +396,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 			return;
 		}
 		SimpleConfiguratorManipulatorUtils.writeConfiguration(simpleInfos, outputFile);
-		if (CONFIG_LIST.equals(outputFile.getName()))
+		if (CONFIG_LIST.equals(outputFile.getName()) && isSharedInstallSetup(URIUtil.toFile(installArea), outputFile))
 			rememberSharedBundlesInfoTimestamp(installArea, outputFile.getParentFile());
 	}
 
@@ -522,13 +522,17 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 		File configFile = getConfigFile(manipulator);
 
 		File installArea = ParserUtils.getOSGiInstallArea(Arrays.asList(manipulator.getLauncherData().getProgramArgs()), manipulator.getConfigData().getProperties(), manipulator.getLauncherData());
-		BundleInfo[] toInstall = null;
-		try {
-			//input stream will be closed for us
-			toInstall = loadConfiguration(new FileInputStream(configFile), installArea.toURI());
-		} catch (FileNotFoundException e) {
-			//no file, just return an empty list
-			toInstall = new BundleInfo[0];
+		BundleInfo[] toInstall = new BundleInfo[0];
+
+		boolean isShared = isSharedInstallSetup(installArea, configFile);
+		if (!isShared || (isShared && !hasBaseChanged(installArea.toURI(), configFile.getParentFile()))) {
+			try {
+				//input stream will be closed for us
+				toInstall = loadConfiguration(new FileInputStream(configFile), installArea.toURI());
+			} catch (FileNotFoundException e) {
+				//no file, just return an empty list
+				toInstall = new BundleInfo[0];
+			}
 		}
 
 		List toUninstall = new LinkedList();
@@ -567,5 +571,44 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 
 		if (outputFile.getParentFile().isDirectory())
 			outputFile.getParentFile().delete();
+	}
+
+	private boolean hasBaseChanged(URI installArea, File outputFolder) {
+		String rememberedTimestamp;
+		try {
+			rememberedTimestamp = (String) loadProperties(new File(outputFolder, SimpleConfiguratorImpl.BASE_TIMESTAMP_FILE_BUNDLESINFO)).get(SimpleConfiguratorImpl.KEY_BUNDLESINFO_TIMESTAMP);
+		} catch (IOException e) {
+			return false;
+		}
+		if (rememberedTimestamp == null)
+			return false;
+
+		File sharedBundlesInfo = new File(URIUtil.append(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST));
+		if (!sharedBundlesInfo.exists())
+			return true;
+		return !String.valueOf(sharedBundlesInfo.lastModified()).equals(rememberedTimestamp);
+	}
+
+	private boolean isSharedInstallSetup(File installArea, File outputFile) {
+		//An instance is treated as shared if the bundles.info file is not located in the install area.
+		return !new File(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST).equals(outputFile);
+	}
+
+	private Properties loadProperties(File inputFile) throws FileNotFoundException, IOException {
+		Properties props = new Properties();
+		InputStream is = null;
+		try {
+			is = new FileInputStream(inputFile);
+			props.load(is);
+		} finally {
+			try {
+				if (is != null)
+					is.close();
+			} catch (IOException e) {
+				//Do nothing
+			}
+			is = null;
+		}
+		return props;
 	}
 }
