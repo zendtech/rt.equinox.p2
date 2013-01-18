@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2012 IBM Corporation and others. All rights reserved. This
+ * Copyright (c) 2007, 2013 IBM Corporation and others. All rights reserved. This
  * program and the accompanying materials are made available under the terms of
  * the Eclipse Public License v1.0 which accompanies this distribution, and is
  * available at http://www.eclipse.org/legal/epl-v10.html
@@ -910,6 +910,8 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 
 		// return true if the cached timestamp is the same as the one on disk
 		boolean isCurrent() {
+			if (!file.exists())
+				return true;
 			return file.lastModified() == timestamp;
 		}
 
@@ -949,8 +951,10 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 
 		File file = new File(profileDirectory, PROFILE_PROPERTIES_FILE);
 		Properties properties = new Properties();
-		if (!file.exists())
+		if (!file.exists()) {
+			lastAccessedProperties = new ProfileStateProperties(id, file, properties);
 			return properties;
+		}
 		InputStream input = null;
 		try {
 			input = new BufferedInputStream(new FileInputStream(file));
@@ -1055,7 +1059,9 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		if (!result.isOK())
 			return result;
 
-		internalLockProfile(profile);
+		if (!internalLockProfile(profile))
+			throw new IllegalStateException(Messages.SimpleProfileRegistry_Profile_in_use);
+
 		try {
 			Properties properties = readStateProperties(profile.getProfileId());
 			for (Map.Entry<String, String> entry : propertiesToAdd.entrySet()) {
@@ -1101,7 +1107,8 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 		int keyOffset = timestampString.length() + 1;
 		lock = lock || lastAccessedProperties == null;
 		if (lock)
-			internalLockProfile(profile);
+			if (!internalLockProfile(profile))
+				throw new IllegalStateException(Messages.SimpleProfileRegistry_Profile_in_use);
 		try {
 			Properties properties = readStateProperties(profile.getProfileId());
 			Iterator<Object> keys = properties.keySet().iterator();
@@ -1132,7 +1139,8 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 
 	private Map<String, String> internalGetProfileStateProperties(IProfile profile, String userKey) {
 		Map<String, String> result = new HashMap<String, String>();
-		internalLockProfile(profile);
+		if (!internalLockProfile(profile))
+			throw new IllegalStateException(Messages.SimpleProfileRegistry_Profile_in_use);
 		try {
 			Properties properties = readStateProperties(profile.getProfileId());
 			Iterator<Object> keys = properties.keySet().iterator();
@@ -1163,7 +1171,9 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 			return Status.OK_STATUS;
 
 		Profile internalProfile = internalGetProfile(id);
-		internalLockProfile(internalProfile);
+		if (!internalLockProfile(internalProfile))
+			throw new IllegalStateException(Messages.SimpleProfileRegistry_Profile_in_use);
+
 		try {
 			Properties properties = readStateProperties(id);
 			String timestampString = String.valueOf(timestamp);
