@@ -214,9 +214,13 @@ public class EquinoxFwConfigFileParser {
 		// load shared configuration properties
 		Properties sharedConfigProperties = getSharedConfiguration(ParserUtils.getOSGiInstallArea(Arrays.asList(manipulator.getLauncherData().getProgramArgs()), props, manipulator.getLauncherData()), props.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
 		if (sharedConfigProperties != null) {
-			baseHasChanged = hasBasedChanged(inputFile, manipulator, props);
+			baseHasChanged = hasBaseChanged(inputFile, manipulator, props);
 			if (!baseHasChanged)
 				sharedConfigProperties.putAll(props);
+			else {
+				sharedConfigProperties.put("osgi.sharedConfiguration.area", props.get("osgi.sharedConfiguration.area"));
+			}
+
 			props = sharedConfigProperties;
 		}
 
@@ -244,7 +248,7 @@ public class EquinoxFwConfigFileParser {
 		Log.log(LogService.LOG_INFO, NLS.bind(Messages.log_configFile, inputFile.getAbsolutePath()));
 	}
 
-	private boolean hasBasedChanged(File configIni, Manipulator manipulator, Properties configProps) {
+	private boolean hasBaseChanged(File configIni, Manipulator manipulator, Properties configProps) {
 		LauncherData launcherData = manipulator.getLauncherData();
 		File sharedConfigIni = findSharedConfigIniFile(ParserUtils.getOSGiInstallArea(Arrays.asList(launcherData.getProgramArgs()), configProps, launcherData), configProps.getProperty(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
 		File timestampFile = new File(configIni.getParentFile(), BASE_TIMESTAMP_FILE_CONFIGINI);
@@ -256,7 +260,7 @@ public class EquinoxFwConfigFileParser {
 		} catch (IOException e) {
 			return false;
 		}
-		return String.valueOf(sharedConfigIni.lastModified()).equals(timestamps.getProperty(KEY_CONFIGINI_TIMESTAMP));
+		return !String.valueOf(sharedConfigIni.lastModified()).equals(timestamps.getProperty(KEY_CONFIGINI_TIMESTAMP));
 	}
 
 	private void readDefaultStartLevel(ConfigData configData, Properties props) {
