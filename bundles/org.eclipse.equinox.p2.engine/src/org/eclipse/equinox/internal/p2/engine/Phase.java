@@ -7,6 +7,7 @@
  * 
  *  Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Landmark Graphics Corporation - bug 397183
  *******************************************************************************/
 package org.eclipse.equinox.internal.p2.engine;
 
@@ -32,6 +33,8 @@ public abstract class Phase {
 	protected static final String PARM_AGENT = "agent"; //$NON-NLS-1$
 	protected static final String PARM_FORCED = "forced"; //$NON-NLS-1$
 	protected static final String PARM_TOUCHPOINT = "touchpoint"; //$NON-NLS-1$
+	protected static final String LAST_RESULT_INTERNAL_NAME = "_p2_internal_last_result_variable_"; //$NON-NLS-1$ //
+	protected static final String LAST_RESULT_PUBLIC_NAME = "lastResult"; //$NON-NLS-1$
 
 	protected final String phaseId;
 	protected final int weight;
@@ -155,8 +158,8 @@ public abstract class Phase {
 				operandParameters = touchpointToTouchpointOperandParameters.get(operandTouchpoint);
 			}
 
-			operandParameters = Collections.unmodifiableMap(operandParameters);
 			if (actions != null) {
+				Object lastResult = null;
 				for (int j = 0; j < actions.size(); j++) {
 					ProvisioningAction action = actions.get(j);
 					Map<String, Object> parameters = operandParameters;
@@ -168,10 +171,17 @@ public abstract class Phase {
 
 						parameters = touchpointToTouchpointOperandParameters.get(touchpoint);
 					}
+					if (lastResult != null) {
+						parameters = new HashMap<String, Object>(parameters);
+						parameters.put(LAST_RESULT_INTERNAL_NAME, lastResult);
+					}
+					parameters = Collections.unmodifiableMap(parameters);
+
 					IStatus actionStatus = null;
 					try {
 						session.recordActionExecute(action, parameters);
 						actionStatus = action.execute(parameters);
+						lastResult = action.getResult();
 					} catch (RuntimeException e) {
 						if (!forced)
 							throw e;
