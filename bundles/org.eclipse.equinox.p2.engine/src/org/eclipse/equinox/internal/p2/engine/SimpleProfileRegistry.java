@@ -244,13 +244,18 @@ public class SimpleProfileRegistry implements IProfileRegistry, IAgentService {
 			id = self;
 		Profile profile = getProfileMap().get(id);
 		if (self != null && self.equals(id)) {
+			boolean resetProfile = false;
 			if (profile != null && ignoreExistingProfile(profile)) {
 				internalSetProfileStateProperty(profile, profile.getTimestamp(), "RESET", "RESET");
 				profile = null;
+				resetProfile = true;
 			}
 			if (profile == null) {
 				profile = createSurrogateProfile(id);
-				internalSetProfileStateProperty(profile, profile.getTimestamp(), "NEW", "NEW");
+				if (resetProfile)
+					internalSetProfileStateProperty(profile, profile.getTimestamp(), "NEW", "NEW");
+				else
+					internalSetProfileStateProperty(profile, profile.getTimestamp(), "FIRST", "FIRST");
 			}
 		}
 		return profile;
