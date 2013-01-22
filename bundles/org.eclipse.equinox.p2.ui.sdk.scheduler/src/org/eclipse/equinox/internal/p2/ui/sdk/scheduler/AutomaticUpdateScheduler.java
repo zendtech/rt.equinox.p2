@@ -94,6 +94,7 @@ public class AutomaticUpdateScheduler implements IStartup {
 	}
 
 	private boolean baseChanged() {
+		final String MIGRATION_DIALOG_SHOWN = "migrationDialogShown"; //$NON-NLS-1$
 		if (!("true".equals(System.getProperty("eclipse.ignoreUserConfiguration"))))
 			return false;
 
@@ -103,10 +104,18 @@ public class AutomaticUpdateScheduler implements IStartup {
 		if (!"NEW".equals(registry.getProfileStateProperties(profileId, currentProfile.getTimestamp()).get("NEW")))
 			return false;
 
+		//Have we already shown the migration dialog
+		if (AutomaticUpdatePlugin.getDefault().getPreferenceStore().getLong(MIGRATION_DIALOG_SHOWN) == currentProfile.getTimestamp())
+			return false;
+
+		//Remember that we are showing the migration dialog
+		AutomaticUpdatePlugin.getDefault().getPreferenceStore().setValue(MIGRATION_DIALOG_SHOWN, currentProfile.getTimestamp());
+		AutomaticUpdatePlugin.getDefault().savePreferences();
+
 		Display d = Display.getDefault();
 		d.asyncExec(new Runnable() {
 			public void run() {
-				MessageDialog.openWarning(getWorkbenchWindowShell(), "Installation modified", "An upgrade of the eclipse installation you are using has been performed. The extensions you had installed have been disabled.");
+				MessageDialog.openWarning(getWorkbenchWindowShell(), "Installation modified", "An upgrade of the eclipse installation you are using has been performed. The plugins you had installed have been uninstalled.");
 			}
 		});
 		return true;
