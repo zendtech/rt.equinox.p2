@@ -99,6 +99,9 @@ public class SimpleConfiguratorImpl implements Configurator {
 				if (!sharedConfig.exists())
 					return userConfig.toURL();
 
+				if (Boolean.TRUE.toString().equals(System.getProperty(PROP_IGNORE_USER_CONFIGURATION)))
+					return sharedConfig.toURL();
+
 				long sharedBundlesInfoTimestamp = getCurrentBundlesInfoBaseTimestamp(sharedConfig);
 				long lastKnownBaseTimestamp = getLastKnownBundlesInfoBaseTimestamp(userConfig.getParentFile());
 
