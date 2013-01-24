@@ -56,7 +56,7 @@ public class ProfileSynchronizer {
 	private static final String PIPE = "|"; //$NON-NLS-1$
 	private static final String EXPLANATION = "org.eclipse.equinox.p2.director.explain"; //$NON-NLS-1$
 
-	private static final String PROP_IGNORE_USER_CONFIGURATION = "eclipse.ignoreUserConfiguration"; //$NON-NLS-1$
+	static final String PROP_IGNORE_USER_CONFIGURATION = "eclipse.ignoreUserConfiguration"; //$NON-NLS-1$
 
 	final IProfile profile;
 
