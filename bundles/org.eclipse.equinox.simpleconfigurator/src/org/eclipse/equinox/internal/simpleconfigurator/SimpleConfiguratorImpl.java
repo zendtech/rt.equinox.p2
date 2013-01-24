@@ -47,7 +47,7 @@ public class SimpleConfiguratorImpl implements Configurator {
 	private static final long NO_TIMESTAMP = -1;
 	public static final String BASE_TIMESTAMP_FILE_BUNDLESINFO = ".baseBundlesInfoTimestamp"; //$NON-NLS-1$
 	public static final String KEY_BUNDLESINFO_TIMESTAMP = "bundlesInfoTimestamp";
-	private static final String PROP_IGNORE_USER_CONFIGURATION = "eclipse.ignoreUserConfiguration"; //$NON-NLS-1$
+	public static final String PROP_IGNORE_USER_CONFIGURATION = "eclipse.ignoreUserConfiguration"; //$NON-NLS-1$
 
 	public SimpleConfiguratorImpl(BundleContext context, Bundle bundle) {
 		this.context = context;
@@ -87,30 +87,10 @@ public class SimpleConfiguratorImpl implements Configurator {
 			//if it is an relative file URL, then resolve it against the configuration area
 			// TODO Support relative file URLs when not on Equinox
 			URL[] configURL = EquinoxUtils.getConfigAreaURL(context);
-			if (configURL != null) {
-				File userConfig = new File(configURL[0].getFile(), url.getFile());
-				if (configURL.length == 1)
-					return userConfig.exists() ? userConfig.toURL() : null;
 
-				File sharedConfig = new File(configURL[1].getFile(), url.getFile());
-				if (!userConfig.exists())
-					return sharedConfig.exists() ? sharedConfig.toURL() : null;
-
-				if (!sharedConfig.exists())
-					return userConfig.toURL();
-
-				if (Boolean.TRUE.toString().equals(System.getProperty(PROP_IGNORE_USER_CONFIGURATION)))
-					return sharedConfig.toURL();
-
-				long sharedBundlesInfoTimestamp = getCurrentBundlesInfoBaseTimestamp(sharedConfig);
-				long lastKnownBaseTimestamp = getLastKnownBundlesInfoBaseTimestamp(userConfig.getParentFile());
-
-				if (lastKnownBaseTimestamp == sharedBundlesInfoTimestamp || lastKnownBaseTimestamp == NO_TIMESTAMP) {
-					return userConfig.toURL();
-				} else {
-					System.setProperty(PROP_IGNORE_USER_CONFIGURATION, Boolean.TRUE.toString());
-					return sharedConfig.toURL();
-				}
+			URL result = chooseConfigurationURL(url, configURL);
+			if (result != null) {
+				return result;
 			}
 		} catch (MalformedURLException e) {
 			return null;
@@ -123,6 +103,40 @@ public class SimpleConfiguratorImpl implements Configurator {
 			//Ignore
 		}
 
+		return null;
+	}
+
+	/**
+	 * This method is public for testing purposes only.
+	 * @param relativeURL - a relative URL of the configuration
+	 * @param configURL - an array of parent config URLs to which relativeURL can be appended. 
+	 */
+	public URL chooseConfigurationURL(URL relativeURL, URL[] configURL) throws MalformedURLException {
+		if (configURL != null) {
+			File userConfig = new File(configURL[0].getFile(), relativeURL.getFile());
+			if (configURL.length == 1)
+				return userConfig.exists() ? userConfig.toURL() : null;
+
+			File sharedConfig = new File(configURL[1].getFile(), relativeURL.getFile());
+			if (!userConfig.exists())
+				return sharedConfig.exists() ? sharedConfig.toURL() : null;
+
+			if (!sharedConfig.exists())
+				return userConfig.toURL();
+
+			if (Boolean.TRUE.toString().equals(System.getProperty(PROP_IGNORE_USER_CONFIGURATION)))
+				return sharedConfig.toURL();
+
+			long sharedBundlesInfoTimestamp = getCurrentBundlesInfoBaseTimestamp(sharedConfig);
+			long lastKnownBaseTimestamp = getLastKnownBundlesInfoBaseTimestamp(userConfig.getParentFile());
+
+			if (lastKnownBaseTimestamp == sharedBundlesInfoTimestamp || lastKnownBaseTimestamp == NO_TIMESTAMP) {
+				return userConfig.toURL();
+			} else {
+				System.setProperty(PROP_IGNORE_USER_CONFIGURATION, Boolean.TRUE.toString());
+				return sharedConfig.toURL();
+			}
+		}
 		return null;
 	}
 
