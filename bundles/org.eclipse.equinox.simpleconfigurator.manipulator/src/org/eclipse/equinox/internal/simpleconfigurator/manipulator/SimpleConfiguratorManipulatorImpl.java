@@ -45,8 +45,10 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 
 	public static final String PROP_KEY_EXCLUSIVE_INSTALLATION = "org.eclipse.equinox.simpleconfigurator.exclusiveInstallation"; //$NON-NLS-1$
 	public static final String CONFIG_LIST = "bundles.info"; //$NON-NLS-1$
+	public static final String CONFIG_FOLDER = "configuration"; //$NON-NLS-1$
 	public static final String CONFIGURATOR_FOLDER = "org.eclipse.equinox.simpleconfigurator"; //$NON-NLS-1$
 	public static final String PROP_KEY_CONFIGURL = "org.eclipse.equinox.simpleconfigurator.configUrl"; //$NON-NLS-1$
+	public static final String SHARED_BUNDLES_INFO = CONFIG_FOLDER + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST;
 
 	private Set manipulators = new HashSet();
 
@@ -404,7 +406,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 		if (installArea == null)
 			return;
 
-		File sharedBundlesInfo = new File(URIUtil.append(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST));
+		File sharedBundlesInfo = new File(URIUtil.append(installArea, SHARED_BUNDLES_INFO));
 		if (!sharedBundlesInfo.exists())
 			return;
 
@@ -432,7 +434,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 			BundleInfo bundleInfo = configuration[i];
 			URI location = bundleInfo.getLocation();
 			if (bundleInfo.getSymbolicName() == null || bundleInfo.getVersion() == null || location == null)
-				throw new IllegalArgumentException("Cannot persist bundleinfo: " + bundleInfo.toString());
+				throw new IllegalArgumentException("Cannot persist bundleinfo: " + bundleInfo.toString()); //$NON-NLS-1$
 			//only need to make a new BundleInfo if we are changing it.
 			if (installArea != null)
 				location = URIUtil.makeRelative(location, installArea);
@@ -583,7 +585,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 		if (rememberedTimestamp == null)
 			return false;
 
-		File sharedBundlesInfo = new File(URIUtil.append(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST));
+		File sharedBundlesInfo = new File(URIUtil.append(installArea, SHARED_BUNDLES_INFO));
 		if (!sharedBundlesInfo.exists())
 			return true;
 		return !String.valueOf(sharedBundlesInfo.lastModified()).equals(rememberedTimestamp);
@@ -591,7 +593,7 @@ public class SimpleConfiguratorManipulatorImpl implements SimpleConfiguratorMani
 
 	private boolean isSharedInstallSetup(File installArea, File outputFile) {
 		//An instance is treated as shared if the bundles.info file is not located in the install area.
-		return !new File(installArea, "configuration" + File.separatorChar + CONFIGURATOR_FOLDER + File.separatorChar + CONFIG_LIST).equals(outputFile);
+		return !new File(installArea, SHARED_BUNDLES_INFO).equals(outputFile);
 	}
 
 	private Properties loadProperties(File inputFile) throws FileNotFoundException, IOException {
