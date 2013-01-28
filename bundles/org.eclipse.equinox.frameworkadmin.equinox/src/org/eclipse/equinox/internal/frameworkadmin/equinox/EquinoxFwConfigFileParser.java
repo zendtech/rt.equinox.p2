@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2011 IBM Corporation and others.
+ * Copyright (c) 2007, 2013 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Ericsson AB (Pascal Rapicault) - Bug 397216 -[Shared] Better shared
+ *                                      configuration change discovery
  *******************************************************************************/
 package org.eclipse.equinox.internal.frameworkadmin.equinox;
 
@@ -218,7 +220,7 @@ public class EquinoxFwConfigFileParser {
 			if (!baseHasChanged)
 				sharedConfigProperties.putAll(props);
 			else {
-				sharedConfigProperties.put("osgi.sharedConfiguration.area", props.get("osgi.sharedConfiguration.area"));
+				sharedConfigProperties.put(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA, props.get(EquinoxConstants.PROP_SHARED_CONFIGURATION_AREA));
 			}
 
 			props = sharedConfigProperties;
