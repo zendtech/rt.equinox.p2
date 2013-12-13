@@ -50,6 +50,7 @@ public class Messages extends NLS {
 	public static String SlicingOption_invalid_platform;
 	public static String exception_invalidDestination;
 	public static String exception_invalidSource;
+	public static String Repo2Runnable_12;
 	public static String Repo2RunnableTask_errorTransforming;
 	public static String SlicingOption_invalidFilterFormat;
 
