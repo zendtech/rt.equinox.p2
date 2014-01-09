@@ -10,6 +10,6 @@
   </parent>
   <groupId>org.eclipse</groupId>
   <artifactId>dependencies.patch.plugin</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>
