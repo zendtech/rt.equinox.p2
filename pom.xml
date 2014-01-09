@@ -61,6 +61,7 @@
     <module>bundles/org.eclipse.equinox.simpleconfigurator.manipulator</module>
     <module>bundles/org.eclipse.equinox.p2.publisher.eclipse</module>
     <module>features/org.eclipse.equinox.p2.core.feature</module>
+    <module>features/org.eclipse.equinox.p2.core.feature.patch</module>
     <module>features/org.eclipse.equinox.p2.extras.feature</module>
     <module>features/org.eclipse.equinox.p2.discovery.feature</module>
     <module>bundles/org.eclipse.equinox.p2.ui.sdk</module>
@@ -74,6 +75,8 @@
     <module>bundles/org.eclipse.equinox.p2.tests.discovery</module>
     <module>bundles/org.eclipse.equinox.p2.tests.ui</module>
     <module>bundles/org.eclipse.equinox.p2.tests.verifier</module>
+    <module>development/rt.equinox.p2.repository</module>
+    <module>bundles/dependencies.patch.plugin</module>
   </modules>
 
 </project>
