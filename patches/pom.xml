@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2012 Eclipse Foundation.
+  All rights reserved. This program and the accompanying materials
+  are made available under the terms of the Eclipse Distribution License v1.0
+  which accompanies this distribution, and is available at
+  http://www.eclipse.org/org/documents/edl-v10.php
+ 
+  Contributors:
+     Igor Fedorenko - initial implementation
+-->
+
+<project
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.platform</groupId>
+  <artifactId>rt.equinox.p2.patches</artifactId>
+  <version>3.8.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+	<module>../bundles/dependencies.patch.plugin</module>
+    <module>../bundles/org.eclipse.equinox.p2.director</module>
+	<module>../features/org.eclipse.equinox.p2.core.feature.patch</module>
+	<module>../development/rt.equinox.p2.repository</module>
+  </modules>
+
+  <repositories>
+		<repository>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<id>eclipse-hosted</id>
+			<url>https://repo.eclipse.org/content/repositories/eclipse/</url>
+		</repository>
+		<repository>
+			<id>3.8</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/eclipse/updates/3.8/</url>
+		</repository>
+		<repository>
+			<id>4.2</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/eclipse/updates/4.2/</url>
+		</repository>
+	</repositories>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>target-platform-configuration</artifactId>
+				<configuration>
+					<resolver>p2</resolver>
+					<environments>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86</arch>
+						</environment>
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86_64</arch>
+						</environment>
+						<environment>
+							<os>win32</os>
+							<ws>win32</ws>
+							<arch>x86</arch>
+						</environment>
+<!-- 						<environment> -->
+<!-- 							<os>win32</os> -->
+<!-- 							<ws>win32</ws> -->
+<!-- 							<arch>x86_64</arch> -->
+<!-- 						</environment> -->
+						<environment>
+							<os>macosx</os>
+							<ws>cocoa</ws>
+							<arch>x86_64</arch>
+						</environment>
+					</environments>
+				</configuration>
+			</plugin>
+
+			<!-- workaround for bug 353505 - need to repeat compiler source and target levels in POM -->
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.5</source>
+					<target>jsr14</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
