@@ -322,8 +322,7 @@ public class EclipseLauncherParser {
 				for (int j = 0; j < newlines.size(); j++) {
 					String arg = (String) newlines.get(j);
 					if (arg == null)
-						continue;
-					bw.write(arg);
+						bw.write(arg);
 					bw.newLine();
 				}
 				bw.flush();
@@ -333,9 +332,10 @@ public class EclipseLauncherParser {
 					bw.close();
 			}
 		}
-		File previousLauncherIni = launcherData.getPreviousLauncherIni();
-		if (previousLauncherIni != null && !previousLauncherIni.equals(launcherConfigFile))
-			previousLauncherIni.delete();
+		//		File previousLauncherIni = launcherData.getPreviousLauncherIni();
+		// Temporary fix for https://bugs.eclipse.org/bugs/show_bug.cgi?id=430805
+		//		if (previousLauncherIni != null && !previousLauncherIni.equals(launcherConfigFile))
+		//			previousLauncherIni.delete();
 		launcherData.setLauncherConfigLocation(launcherConfigFile);
 	}
 }
