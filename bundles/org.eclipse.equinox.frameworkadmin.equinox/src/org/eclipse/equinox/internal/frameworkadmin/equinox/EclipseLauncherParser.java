@@ -322,7 +322,8 @@ public class EclipseLauncherParser {
 				for (int j = 0; j < newlines.size(); j++) {
 					String arg = (String) newlines.get(j);
 					if (arg == null)
-						bw.write(arg);
+						continue;
+					bw.write(arg);
 					bw.newLine();
 				}
 				bw.flush();
