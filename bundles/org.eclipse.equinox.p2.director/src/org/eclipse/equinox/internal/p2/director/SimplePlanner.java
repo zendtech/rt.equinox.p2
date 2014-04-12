@@ -133,6 +133,46 @@ public class SimplePlanner implements IPlanner {
 		return result[0];
 	}
 
+	private Map<String, IInstallableUnit> verifyUpdates(final Map<String, IInstallableUnit> in) {
+		final BundleContext context = DirectorActivator.context;
+		if (context == null)
+			return in;
+
+		ServiceReference ref = context.getServiceReference(PlanVerifier.class.getName());
+		if (ref == null) {
+			Tracing.debug("Skipping update verification. No verifier available."); //$NON-NLS-1$
+			return in;
+		}
+		final PlanVerifier verifier = (PlanVerifier) context.getService(ref);
+		if (verifier == null) {
+			Tracing.debug("Skipping update verification. No verifier available."); //$NON-NLS-1$
+			return in;
+		}
+		final Map[] result = new Map[1];
+
+		ISafeRunnable job = new ISafeRunnable() {
+			public void handleException(Throwable exception) {
+				Tracing.debug("Exception while running verifier. Check log for details."); //$NON-NLS-1$
+				// log the exception 
+				LogHelper.log(new Status(IStatus.ERROR, DirectorActivator.PI_DIRECTOR, "Exception while running plan verifier.", exception)); //$NON-NLS-1$
+				// don't let a bad verifier prevent the operation. fall through and return OK so execution of the plan continues
+			}
+
+			public void run() throws Exception {
+				Tracing.debug("Running update verifier."); //$NON-NLS-1$
+				long start = System.currentTimeMillis();
+				result[0] = verifier.verifyUpdates(in);
+				Tracing.debug("Verification complete in " + (System.currentTimeMillis() - start) + "ms."); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		};
+		try {
+			SafeRunner.run(job);
+		} finally {
+			context.ungetService(ref);
+		}
+		return result[0];
+	}
+
 	private Map<IInstallableUnit, RequestStatus>[] buildDetailedErrors(ProfileChangeRequest changeRequest) {
 		Collection<IInstallableUnit> requestedAdditions = changeRequest.getAdditions();
 		Collection<IInstallableUnit> requestedRemovals = changeRequest.getRemovals();
@@ -845,7 +885,7 @@ public class SimplePlanner implements IPlanner {
 				resultsMap.put(key, iu);
 		}
 		sub.done();
-		return new CollectionResult<IInstallableUnit>(resultsMap.values());
+		return new CollectionResult<IInstallableUnit>(verifyUpdates(resultsMap).values());
 	}
 
 	//helper class to trick the resolver to believe that everything is optional
