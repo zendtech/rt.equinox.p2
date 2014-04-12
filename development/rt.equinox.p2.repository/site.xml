@@ -3,7 +3,7 @@
    <feature url="features/org.eclipse.equinox.p2.core.feature.patch_1.1.0.qualifier.jar" id="org.eclipse.equinox.p2.core.feature.patch" version="1.1.0.qualifier" patch="true">
       <category name="rt.equinox.p2"/>
    </feature>
-   <feature url="features/oorg.eclipse.equinox.p2.rcp.feature.patch_1.1.0.qualifier.jar" id="org.eclipse.equinox.p2.rcp.feature.patch" version="1.1.0.qualifier" patch="true">
+   <feature url="features/org.eclipse.equinox.p2.rcp.feature.patch_1.1.0.qualifier.jar" id="org.eclipse.equinox.p2.rcp.feature.patch" version="1.1.0.qualifier" patch="true">
       <category name="rt.equinox.p2"/>
    </feature>
    <category-def name="rt.equinox.p2" label="P2"/>
