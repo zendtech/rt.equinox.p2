@@ -15,7 +15,6 @@ import java.io.IOException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.equinox.internal.p2.ui.sdk.prefs.PreferenceConstants;
-import org.eclipse.equinox.internal.p2.ui.sdk.prefs.PreferenceInitializer;
 import org.eclipse.equinox.p2.core.IAgentLocation;
 import org.eclipse.equinox.p2.core.IProvisioningAgent;
 import org.eclipse.equinox.p2.engine.IProfileRegistry;
@@ -83,7 +82,7 @@ public class ProvSDKUIActivator extends AbstractUIPlugin {
 		super.start(bundleContext);
 		plugin = this;
 		ProvSDKUIActivator.context = bundleContext;
-		PreferenceInitializer.migratePreferences();
+		//PreferenceInitializer.migratePreferences();
 		getPreferenceStore().addPropertyChangeListener(getPreferenceListener());
 	}
 
