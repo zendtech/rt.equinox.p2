@@ -132,7 +132,11 @@ public class SimplePlanner implements IPlanner {
 		return result[0];
 	}
 
-	private Map<String, IInstallableUnit> verifyUpdates(final Map<String, IInstallableUnit> in) {
+	private synchronized Map<String, IInstallableUnit> verifyUpdates(final Map<String, IInstallableUnit> in) {
+
+		if (in == null || in.isEmpty())
+			return in;
+
 		final BundleContext context = DirectorActivator.context;
 		if (context == null)
 			return in;
@@ -147,7 +151,8 @@ public class SimplePlanner implements IPlanner {
 			Tracing.debug("Skipping update verification. No verifier available."); //$NON-NLS-1$
 			return in;
 		}
-		final Map[] result = new Map[1];
+		final Map<String, IInstallableUnit>[] result = new Map[1];
+		result[0] = in;
 
 		ISafeRunnable job = new ISafeRunnable() {
 			public void handleException(Throwable exception) {
@@ -166,6 +171,9 @@ public class SimplePlanner implements IPlanner {
 		};
 		try {
 			SafeRunner.run(job);
+		} catch (Exception ex) {
+			LogHelper.log(new Status(IStatus.ERROR, DirectorActivator.PI_DIRECTOR, "Exception while running plan verifier.", ex)); //$NON-NLS-1$
+			return in;
 		} finally {
 			context.ungetService(ref);
 		}
