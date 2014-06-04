@@ -151,6 +151,7 @@ public class SimplePlanner implements IPlanner {
 			Tracing.debug("Skipping update verification. No verifier available."); //$NON-NLS-1$
 			return in;
 		}
+
 		final Map<String, IInstallableUnit>[] result = new Map[1];
 		result[0] = in;
 
