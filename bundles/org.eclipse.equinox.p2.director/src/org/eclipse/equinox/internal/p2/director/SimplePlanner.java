@@ -132,7 +132,7 @@ public class SimplePlanner implements IPlanner {
 		return result[0];
 	}
 
-	private Map<String, IInstallableUnit> verifyUpdates(final Map<String, IInstallableUnit> in) {
+	private synchronized Map<String, IInstallableUnit> verifyUpdates(final Map<String, IInstallableUnit> in) {
 		final BundleContext context = DirectorActivator.context;
 		if (context == null)
 			return in;
@@ -148,6 +148,7 @@ public class SimplePlanner implements IPlanner {
 			return in;
 		}
 		final Map[] result = new Map[1];
+		result[0] = in;
 
 		ISafeRunnable job = new ISafeRunnable() {
 			public void handleException(Throwable exception) {

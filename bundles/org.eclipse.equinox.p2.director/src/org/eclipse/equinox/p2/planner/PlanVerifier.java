@@ -14,6 +14,8 @@ public abstract class PlanVerifier {
 	/**
 	 * Verifies possible updates
 	 */
-	public abstract Map<String, IInstallableUnit> verifyUpdates(Map<String, IInstallableUnit> in);
+	public Map<String, IInstallableUnit> verifyUpdates(Map<String, IInstallableUnit> in) {
+		return in;
+	}
 
 }
