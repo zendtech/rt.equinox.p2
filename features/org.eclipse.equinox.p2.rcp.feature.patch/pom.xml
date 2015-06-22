@@ -23,4 +23,30 @@
   <artifactId>org.eclipse.equinox.p2.rcp.feature.patch</artifactId>
   <version>1.2.200-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
+  
+  <profiles>
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-jarsigner-plugin</artifactId>
+            <version>1.4</version>
+            <configuration>
+              <tsa>https://timestamp.geotrust.com/tsa</tsa>
+            </configuration>
+            <executions>
+              <execution>
+                <id>sign</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
