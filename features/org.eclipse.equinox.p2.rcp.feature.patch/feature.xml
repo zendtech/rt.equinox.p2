@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.equinox.p2.rcp.feature.patch"
       label="%featureName"
-      version="1.2.100.qualifier"
+      version="1.2.101.qualifier"
       provider-name="%providerName">
 
    <description url="http://www.example.com/description">
@@ -21,7 +21,7 @@
       <import feature="org.eclipse.equinox.p2.rcp.feature" version="1.2.101.v20150826-1318" patch="true"/>
    </requires>
 
-<plugin
+   <plugin
          id="org.eclipse.equinox.p2.ui.sdk"
          download-size="0"
          install-size="0"
