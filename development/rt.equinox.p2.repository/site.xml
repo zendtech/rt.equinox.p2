@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/org.eclipse.equinox.p2.core.feature.patch_1.3.100.qualifier.jar" id="org.eclipse.equinox.p2.core.feature.patch" version="1.3.100.qualifier" patch="true">
+   <feature url="features/org.eclipse.equinox.p2.core.feature.patch_0.0.0.jar" id="org.eclipse.equinox.p2.core.feature.patch" version="0.0.0" patch="true">
       <category name="rt.equinox.p2"/>
    </feature>
-   <feature url="features/org.eclipse.equinox.p2.rcp.feature.patch_1.2.100.qualifier.jar" id="org.eclipse.equinox.p2.rcp.feature.patch" version="1.2.100.qualifier" patch="true">
+   <feature url="features/org.eclipse.equinox.p2.rcp.feature.patch_0.0.0.jar" id="org.eclipse.equinox.p2.rcp.feature.patch" version="0.0.0" patch="true">
       <category name="rt.equinox.p2"/>
    </feature>
    <category-def name="rt.equinox.p2" label="P2"/>

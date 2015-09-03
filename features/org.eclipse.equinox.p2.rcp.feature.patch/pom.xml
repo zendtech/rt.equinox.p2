@@ -21,7 +21,7 @@
   </parent>
   <groupId>org.eclipse</groupId>
   <artifactId>org.eclipse.equinox.p2.rcp.feature.patch</artifactId>
-  <version>1.2.100-SNAPSHOT</version>
+  <version>1.2.101-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
   
   <profiles>
