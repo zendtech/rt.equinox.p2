@@ -23,6 +23,25 @@
 	<properties>
 		<tycho.scmUrl>scm:git:git://git.eclipse.org/gitroot/equinox/rt.equinox.p2.git</tycho.scmUrl>
 	</properties>
+	
+	
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>eclipse-hosted</id>
+      <url>https://repo.eclipse.org/content/repositories/eclipse/</url>
+    </repository>
+    <repository>
+      <id>Misc-todo</id>
+      <layout>p2</layout>
+      <url>http://download.eclipse.org/eclipse/updates/4.5-M-builds</url>
+    </repository>
+  </repositories>
 
   <!-- 
     To build individual bundles, we specify a repository where to find parent pom, 
@@ -42,6 +61,11 @@
           </snapshots>
           <id>eclipse-hosted</id>
           <url>https://repo.eclipse.org/content/repositories/eclipse/</url>
+        </repository>
+        <repository>
+          <id>Misc-todo</id>
+          <layout>p2</layout>
+          <url>http://download.eclipse.org/eclipse/updates/4.5-M-builds</url>
         </repository>
       </repositories>
     </profile>
