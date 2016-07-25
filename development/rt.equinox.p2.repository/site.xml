@@ -6,5 +6,8 @@
    <feature url="features/org.eclipse.equinox.p2.rcp.feature.patch_0.0.0.jar" id="org.eclipse.equinox.p2.rcp.feature.patch" version="0.0.0" patch="true">
       <category name="rt.equinox.p2"/>
    </feature>
+   <feature url="features/org.eclipse.equinox.p2.discovery.feature.patch_0.0.0.jar" id="org.eclipse.equinox.p2.discovery.feature.patch" version="0.0.0" patch="true">
+      <category name="rt.equinox.p2"/>
+   </feature>
    <category-def name="rt.equinox.p2" label="P2"/>
 </site>

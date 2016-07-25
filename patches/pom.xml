@@ -25,8 +25,10 @@
     <module>../bundles/org.eclipse.equinox.p2.director</module>
     <module>../bundles/org.eclipse.equinox.frameworkadmin.equinox</module>
     <module>../bundles/org.eclipse.equinox.p2.ui.sdk</module>
+    <module>../bundles/org.eclipse.equinox.p2.ui.discovery</module>
 	<module>../features/org.eclipse.equinox.p2.core.feature.patch</module>
 	<module>../features/org.eclipse.equinox.p2.rcp.feature.patch</module>
+    <module>../features/org.eclipse.equinox.p2.discovery.feature.patch</module>
 	<module>../development/rt.equinox.p2.repository</module>
   </modules>
 
